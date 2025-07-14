@@ -1,0 +1,5 @@
+{
+    "profileUrl": "https://ch30e1uez8.execute-api.us-east-1.amazonaws.com/prod/Iam/tenant/<tenant_name>/Alias/<user_alias>/type/profile",
+    "getAliasIdUrl": "https://ch30e1uez8.execute-api.us-east-1.amazonaws.com/prod/Iam/tenant/<tenant_name>/Alias/user_email/<user_email>"
+  }
+  

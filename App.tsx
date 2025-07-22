@@ -5,6 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Amplify } from 'aws-amplify';
 import awsConfig from './aws';
 import type { RootStackParamList } from './types';
+import InterestQuiz from './app/screens/InterestQuiz';
 
 import { AuthProvider } from './app/context/AuthContext';
 import ProtectedRoute from './app/components/ProtectedRoute';
@@ -27,6 +28,7 @@ export default function App() {
           <Stack.Screen name="Welcome" component={Welcome} />
           <Stack.Screen name="Login" component={Login} />
           <Stack.Screen name="Signup" component={Signup} />
+          <Stack.Screen name="InterestQuiz" component={InterestQuiz} />
           <Stack.Screen
             name="Main"
             children={() => (

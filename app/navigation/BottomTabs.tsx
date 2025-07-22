@@ -7,7 +7,6 @@ import Quiz from "../screens/quiz";
 import Profile from "../screens/profile";
 import Roadmap from "../screens/roadmap";
 import Achievements from "../screens/achievements";
-
 const Tab = createBottomTabNavigator();
 
 export default function BottomTabs() {

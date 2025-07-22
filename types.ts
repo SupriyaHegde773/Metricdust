@@ -12,6 +12,12 @@ export type RootStackParamList = {
   Roadmap: undefined;
   Achievements: undefined;
   Authorized: undefined;
+  Coursefeed: undefined;
+  Courses: { query: string };
+  CourseDetail: { id: string };
+  CourseList: { query: string };
+  CourseSearch: { query: string };
+  InterestQuiz: undefined;
 };
 
 export type LoginScreenNavigationProp = NativeStackNavigationProp<

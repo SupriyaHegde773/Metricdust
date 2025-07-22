@@ -56,7 +56,7 @@ export default function Login() {
         console.warn('Alias ID not found for user.');
       }
 
-      navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
+      navigation.reset({ index: 0, routes: [{ name: 'InterestQuiz' }] });
     } catch (error: any) {
       console.error('Login failed:', error);
       if (error.name === 'UserNotConfirmedException') {

@@ -22,9 +22,9 @@ export const AuthService = {
     const user = await signIn({
       username: email,
       password,
-      // options: {
-      //   authFlowType: "USER_PASSWORD_AUTH",
-      // },
+      options: {
+        authFlowType: "USER_PASSWORD_AUTH",
+      },
     });
     return user;
   },

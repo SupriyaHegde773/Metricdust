@@ -1,42 +1,38 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, TextInput } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  TextInput,
+  StyleSheet,
+  Dimensions,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types';
 import { StorageService } from '../../storageService';
+import { useAuth } from '../context/AuthContext';
+import { AuthService } from '../../AuthService';
 
-type NavProp = NativeStackNavigationProp<RootStackParamList>;
+const { height } = Dimensions.get('window');
 
-const quiz = [
-  // Section 1: Learning Goals
-  {
-    section: 'Learning Goals',
-    question: "What's your primary motivation for learning?",
-    options: [
-      'Get a job or internship',
-      'Switch careers',
-      'Excel in my current role',
-      'Explore something new',
-      'Start freelancing or business'
-    ],
-    key: 'goal'
-  },
-  // Section 2: Background & Experience
+const steps = [
   {
     section: 'Background & Experience',
-    question: 'What is your current educational background?',
+    title: 'What is your current educational background?',
+    key: 'educationLevel',
     options: [
       'High school',
       'Undergraduate student',
       'Graduate student',
       'Working professional',
       'Research/PhD',
-      'Other'
+      'Other',
     ],
-    key: 'educationLevel'
   },
   {
-    question: 'What field are you from or interested in?',
+    title: 'What field are you from or interested in?',
+    key: 'fieldInterest',
     options: [
       'Computer Science / IT',
       'Commerce / Business',
@@ -44,205 +40,342 @@ const quiz = [
       'Science / Engineering',
       'Law / Policy',
       'Healthcare / Medicine',
-      'Undecided / General Learning'
+      'Undecided / General Learning',
     ],
-    key: 'fieldInterest'
   },
-  {
-    question: 'Do you have experience with any of these tools/languages?',
-    options: [
-      'Excel / Spreadsheets',
-      'Python / R',
-      'JavaScript / HTML',
-      'Statistical tools (SPSS, Stata)',
-      'Design tools (Figma, Canva)',
-      'Project tools (Notion, Trello)',
-      'None yet'
-    ],
-    key: 'toolsUsed',
-    multi: true
-  },
-
-  // Section 3: Interests
   {
     section: 'Interests',
-    question: 'Which topics are you most curious about?',
+    title: 'Which topics are you most curious about?',
+    key: 'domains',
     options: [
       'Web / App Development',
       'Finance / Accounting',
       'Psychology / Sociology',
       'Data Analytics / AI',
       'Marketing / Sales',
-      'Design / Creativity',
       'Cybersecurity / Networks',
-      'Environment / Sustainability'
     ],
-    key: 'domains',
-    multi: true
+    multi: true,
   },
   {
-    question: 'How do you like to learn best?',
+    title: 'How do you like to learn best?',
+    key: 'learningStyle',
     options: [
       'Watching videos',
       'Hands-on projects',
       'Reading articles/books',
-      'Solving quizzes / problems'
+      'Solving quizzes / problems',
     ],
-    key: 'learningStyle'
-  }
+    multi: true,
+  },
 ];
 
 export default function InterestQuiz() {
-  const navigation = useNavigation<NavProp>();
-  const [current, setCurrent] = useState(-1);
-  const [answers, setAnswers] = useState<{ [key: string]: string | string[] }>({});
-  const [userBio, setUserBio] = useState('');
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const [currentStep, setCurrentStep] = useState(0);
+  const [answers, setAnswers] = useState<{ [key: string]: string[] }>({});
+  const [customInput, setCustomInput] = useState('');
+  const { setUser } = useAuth();
 
-  const startQuiz = () => setCurrent(0);
+  const totalSteps = steps.length;
+  const step = steps[currentStep];
+  const selected = answers[step.key] || [];
 
-  const handleSelect = (option: string) => {
-    const key = quiz[current].key;
-    const isMulti = quiz[current].multi;
-    const updated = { ...answers };
-
+  const toggleOption = (option: string) => {
+    const isMulti = step.multi;
     if (isMulti) {
-      const currentVals = (updated[key] as string[]) || [];
-      updated[key] = currentVals.includes(option)
-        ? currentVals.filter((o) => o !== option)
-        : [...currentVals, option];
+      const updated = selected.includes(option)
+        ? selected.filter((o) => o !== option)
+        : [...selected, option];
+      setAnswers({ ...answers, [step.key]: updated });
     } else {
-      updated[key] = option;
+      setAnswers({ ...answers, [step.key]: [option] });
     }
-
-    setAnswers(updated);
   };
 
-  const next = () => {
-    const key = quiz[current].key;
-    if (!answers[key] || (Array.isArray(answers[key]) && (answers[key] as string[]).length === 0)) {
-      Alert.alert('Please select at least one option');
-      return;
-    }
+  const handleNext = () => {
+    const trimmed = customInput.trim();
+    const merged = trimmed ? [...selected, trimmed] : selected;
 
-    setCurrent(current + 1);
+    if (merged.length === 0) return;
+
+    setAnswers({ ...answers, [step.key]: merged });
+    setCustomInput('');
+
+    if (currentStep < totalSteps - 1) {
+      setCurrentStep(currentStep + 1);
+    } else {
+      handleComplete({ ...answers, [step.key]: merged });
+    }
   };
 
-  const handleSubmit = async () => {
-    if (!userBio.trim()) {
-      Alert.alert('Please write a short description about yourself');
-      return;
+  const handleBack = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+    } else {
+      navigation.goBack(); // ✅ now works on first step
     }
-
-    const fullData = { ...answers, userBio };
-    await StorageService.setData('preferences', JSON.stringify(fullData));
-    Alert.alert('Thank you! Your preferences are saved.');
-    navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
   };
 
-  // Intro screen
-  if (current === -1) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.title}>🚀 Help Us Know You!</Text>
-        <Text style={styles.description}>
-          We'll ask you a few quick, fun questions to understand your learning goals and recommend personalized content.
-        </Text>
-        <TouchableOpacity style={styles.nextButton} onPress={startQuiz}>
-          <Text style={styles.nextText}>Get Started</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
+  const handleComplete = async (final: any) => {
+    try {
+      await StorageService.setData('profileSetup', JSON.stringify(final));
+      await StorageService.setData('profileComplete', 'true');
 
-  // After last quiz question, show text input for user bio
-  if (current === quiz.length) {
-    return (
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>🎯 Final Step!</Text>
-        <Text style={styles.description}>
-          Tell us a bit about yourself — your goals, interests, or what you hope to achieve. This helps us personalize your learning journey.
-        </Text>
-        <TextInput
-          style={styles.textInput}
-          multiline
-          placeholder="E.g. I'm a beginner interested in full stack development and want to land a remote job."
-          value={userBio}
-          onChangeText={setUserBio}
-        />
-        <TouchableOpacity style={styles.nextButton} onPress={handleSubmit}>
-          <Text style={styles.nextText}>Submit & Continue</Text>
-        </TouchableOpacity>
-      </ScrollView>
-    );
-  }
+      const currentUser = await AuthService.currentUser();
+      if (currentUser) {
+        setUser({
+          username: currentUser.username,
+          email: currentUser.email ?? '',
+        });
+      }
 
-  // Main quiz flow
-  const q = quiz[current];
-  const selected = answers[q.key];
+      // ✅ Route to Main (ensure 'Main' exists in your stack)
+      navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
+    } catch (error) {
+      console.error('Error completing profile setup:', error);
+    }
+  };
 
-  return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.progress}>Step {current + 1} of {quiz.length + 1}</Text>
-      {q.section && <Text style={styles.section}>{q.section}</Text>}
-      <Text style={styles.question}>{q.question}</Text>
-
-      {q.options.map((option) => {
-        const isSelected = Array.isArray(selected)
-          ? selected.includes(option)
-          : selected === option;
-
+  const renderStepper = () => (
+    <View style={styles.stepperContainer}>
+      {[...Array(totalSteps)].map((_, index) => {
+        const isActive = index === currentStep;
         return (
-          <TouchableOpacity
-            key={option}
-            onPress={() => handleSelect(option)}
-            style={[styles.option, isSelected && styles.selected]}
+          <View
+            key={index}
+            style={[
+              styles.stepCircle,
+              isActive ? styles.stepCircleActive : styles.stepCircleInactive,
+            ]}
           >
-            <Text style={[styles.optionText, isSelected && styles.selectedText]}>{option}</Text>
-          </TouchableOpacity>
+            <Text
+              style={[
+                styles.stepNumber,
+                isActive ? styles.stepNumberActive : styles.stepNumberInactive,
+              ]}
+            >
+              {index + 1}
+            </Text>
+          </View>
         );
       })}
+    </View>
+  );
 
-      <TouchableOpacity style={styles.nextButton} onPress={next}>
-        <Text style={styles.nextText}>{current === quiz.length - 1 ? 'Next → Intro' : 'Next'}</Text>
-      </TouchableOpacity>
-    </ScrollView>
+  const renderOptions = () =>
+    step.options.map((option) => {
+      const isSelected = selected.includes(option);
+      return (
+        <TouchableOpacity
+          key={option}
+          style={[styles.optionBtn, isSelected && styles.optionSelected]}
+          onPress={() => toggleOption(option)}
+        >
+          <View
+            style={[
+              styles.radioCircle,
+              isSelected && styles.radioCircleSelected,
+            ]}
+          />
+          <Text
+            style={[
+              styles.optionLabel,
+              isSelected && styles.optionTextSelected,
+            ]}
+          >
+            {option}
+          </Text>
+        </TouchableOpacity>
+      );
+    });
+
+  return (
+    <View style={styles.overlay}>
+      <View style={styles.card}>
+        <Text style={styles.title}>Set up your profile</Text>
+        <Text style={styles.subtitle}>
+          Help us personalize your learning experience
+        </Text>
+
+        {renderStepper()}
+
+        {step.section && <Text style={styles.sectionText}>{step.section}</Text>}
+        <Text style={styles.question}>{step.title}</Text>
+
+        <View>{renderOptions()}</View>
+
+        <Text style={styles.inputLabel}>Add custom option:</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Type here..."
+          value={customInput}
+          onChangeText={setCustomInput}
+        />
+
+        <View style={styles.actions}>
+          <TouchableOpacity
+            onPress={handleBack}
+            style={[styles.backBtn, currentStep === 0 && styles.backBtn]}
+          >
+            <Text style={styles.backText}>Back</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
+            <Text style={styles.nextText}>
+              {currentStep === totalSteps - 1 ? 'Complete' : 'Next'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
   );
 }
 
+// ✅ styles unchanged from previous code
 const styles = StyleSheet.create({
-  container: { padding: 24, flexGrow: 1, justifyContent: 'center' },
-  title: { fontSize: 22, fontWeight: 'bold', marginBottom: 16, color: '#0f766e' },
-  description: { fontSize: 16, color: '#334155', marginBottom: 20 },
-  progress: { fontSize: 14, color: '#94a3b8', marginBottom: 10 },
-  section: { fontSize: 16, color: '#0f172a', fontWeight: '600', marginBottom: 4 },
-  question: { fontSize: 18, fontWeight: 'bold', marginBottom: 16, color: '#0f766e' },
-  option: {
-    backgroundColor: '#f1f5f9',
-    padding: 12,
-    marginVertical: 6,
-    borderRadius: 10,
-  },
-  selected: { backgroundColor: '#0f766e' },
-  optionText: { fontSize: 16, color: '#334155' },
-  selectedText: { color: '#fff' },
-  nextButton: {
-    backgroundColor: '#10b981',
-    marginTop: 30,
-    padding: 14,
-    borderRadius: 8,
+  overlay: {
+    flex: 1,
+    backgroundColor: '#00000060',
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  nextText: { color: '#fff', fontWeight: '600', fontSize: 16 },
-  textInput: {
-    height: 120,
-    borderColor: '#e2e8f0',
+  card: {
+    width: '90%',
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 16,
+    maxHeight: height * 0.82,
+  },
+  title: {
+    fontSize: 17,
+    fontWeight: '600',
+    textAlign: 'center',
+    color: '#0f172a',
+  },
+  subtitle: {
+    textAlign: 'center',
+    color: '#64748b',
+    fontSize: 13,
+    marginBottom: 10,
+  },
+  stepperContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 14,
+    gap: 8,
+  },
+  stepCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  stepCircleActive: {
+    backgroundColor: '#0f172a',
+  },
+  stepCircleInactive: {
+    backgroundColor: '#e2e8f0',
+  },
+  stepNumber: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  stepNumberActive: {
+    color: 'white',
+  },
+  stepNumberInactive: {
+    color: '#64748b',
+  },
+  sectionText: {
+    color: '#475569',
+    fontSize: 12,
+    marginBottom: 4,
+    fontWeight: '500',
+  },
+  question: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#0f172a',
+    marginBottom: 10,
+  },
+  optionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 10,
     borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    textAlignVertical: 'top',
-    fontSize: 16,
+    borderColor: '#e2e8f0',
+    borderRadius: 10,
+    backgroundColor: 'white',
+    marginBottom: 6,
+  },
+  optionSelected: {
+    borderColor: '#0f766e',
+    backgroundColor: '#ecfdf5',
+  },
+  radioCircle: {
+    width: 9,
+    height: 9,
+    borderRadius: 4.5,
+    borderWidth: 1,
+    borderColor: '#94a3b8',
+    marginRight: 6,
+  },
+  radioCircleSelected: {
+    backgroundColor: '#0f766e',
+    borderColor: '#0f766e',
+  },
+  optionLabel: {
+    fontSize: 12,
     color: '#334155',
-    backgroundColor: '#fff',
-    marginBottom: 20,
+  },
+  optionTextSelected: {
+    fontWeight: '600',
+    color: '#0f766e',
+  },
+  inputLabel: {
+    fontSize: 12,
+    color: '#334155',
+    marginTop: 10,
+    marginBottom: 4,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 10,
+    padding: 8,
+    fontSize: 12,
+    marginBottom: 10,
+  },
+  actions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 10,
+    marginTop: 4,
+  },
+  backBtn: {
+    flex: 1,
+    backgroundColor: '#e2e8f0',
+    borderRadius: 8,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  backText: {
+    color: '#475569',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  nextBtn: {
+    flex: 1,
+    backgroundColor: '#0f766e',
+    borderRadius: 8,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  nextText: {
+    color: 'white',
+    fontSize: 13,
+    fontWeight: '600',
   },
 });

@@ -9,11 +9,12 @@ import InterestQuiz from './app/screens/InterestQuiz';
 
 import { AuthProvider } from './app/context/AuthContext';
 import ProtectedRoute from './app/components/ProtectedRoute';
+import BottomTabs from './app/navigation/BottomTabs';
 
 import Welcome from './app/screens/welcome';
 import Login from './app/screens/login';
 import Signup from './app/screens/signup';
-import Authorized from './app/screens/authorized'; // This renders BottomTabs or Home etc
+import Authorized from './app/screens/authorized';
 
 Amplify.configure(awsConfig);
 
@@ -29,14 +30,7 @@ export default function App() {
           <Stack.Screen name="Login" component={Login} />
           <Stack.Screen name="Signup" component={Signup} />
           <Stack.Screen name="InterestQuiz" component={InterestQuiz} />
-          <Stack.Screen
-            name="Main"
-            children={() => (
-              <ProtectedRoute>
-                <Authorized />
-              </ProtectedRoute>
-            )}
-          />
+          <Stack.Screen name="Main"component={BottomTabs}/>
         </Stack.Navigator>
       </NavigationContainer>
     </AuthProvider>

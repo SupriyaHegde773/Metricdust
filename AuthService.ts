@@ -4,7 +4,7 @@ import {
   signUp,
   signIn,
   fetchUserAttributes,
-} from 'aws-amplify/auth';
+} from "aws-amplify/auth";
 
 export const AuthService = {
   async signUpWithEmail(email: string, password: string) {
@@ -19,7 +19,13 @@ export const AuthService = {
   },
 
   async loginWithEmail(email: string, password: string) {
-    const user = await signIn({ username: email, password });
+    const user = await signIn({
+      username: email,
+      password,
+      // options: {
+      //   authFlowType: "USER_PASSWORD_AUTH",
+      // },
+    });
     return user;
   },
 
@@ -29,14 +35,14 @@ export const AuthService = {
       const attributes = await fetchUserAttributes();
 
       // ✅ Add this log to confirm user details
-      console.log('👤 Fetched user:', user.username, attributes.email);
+      console.log("👤 Fetched user:", user.username, attributes.email);
 
       return {
         username: user.username,
         email: attributes.email,
       };
     } catch (error) {
-      console.error('⚠️ Error in AuthService.currentUser():', error);
+      console.error("⚠️ Error in AuthService.currentUser():", error);
       return null;
     }
   },

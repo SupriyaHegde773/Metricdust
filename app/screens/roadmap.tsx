@@ -151,14 +151,14 @@ export default function Roadmap() {
 
 const styles = StyleSheet.create({
   container: { padding: 20, backgroundColor: '#fff' },
-  heading: { fontSize: 22, fontWeight: 'bold', color: '#0f172a', marginBottom: 12 },
+  heading: { fontSize: 24, fontWeight: 'bold', color: '#0f172a', marginBottom: 12, marginTop: 40 },
   tabs: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: 10 },
   tab: {
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 12,
     backgroundColor: '#fef3c7',
-    color: '#64748b'
+    color: '#64748b',
   },
   tabActive: {
     backgroundColor: '#facc15',

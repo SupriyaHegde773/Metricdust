@@ -30,7 +30,8 @@
     "react-native-web": "^0.20.0",
     "router": "^2.2.0",
     "expo-updates": "~0.28.17",
-    "expo-dev-client": "~5.2.4"
+    "expo-dev-client": "~5.2.4",
+    "expo-blur": "~14.1.5"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

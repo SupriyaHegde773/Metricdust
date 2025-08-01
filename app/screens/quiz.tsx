@@ -1,3 +1,5 @@
+// QuizScreen.tsx
+
 import React, { useState } from 'react';
 import {
   View,
@@ -86,15 +88,13 @@ export default function QuizScreen() {
       setLoading(true);
       setTimeout(() => {
         setLoading(false);
-        navigation.navigate('Profile'); // ✅ Navigate using React Navigation
-      }, 3000);
+        navigation.navigate('Profile');
+      }, 2500);
     }
   };
 
   const handlePrev = () => {
-    if (current > 0) {
-      setCurrent(current - 1);
-    }
+    if (current > 0) setCurrent(current - 1);
   };
 
   const question = quizQuestions[current];
@@ -111,9 +111,12 @@ export default function QuizScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.progressText}>
-        Question {current + 1} of {quizQuestions.length}
-      </Text>
+      {/* Progress bar */}
+      <View style={styles.progressBarBg}>
+        <View style={[styles.progressBarFill, { width: `${((current + 1) / quizQuestions.length) * 100}%` }]} />
+      </View>
+
+      <Text style={styles.questionCount}>Question {current + 1} / {quizQuestions.length}</Text>
       <Text style={styles.question}>{question.question}</Text>
 
       {question.options.map((option, index) => (
@@ -131,6 +134,7 @@ export default function QuizScreen() {
         </TouchableOpacity>
       ))}
 
+      {/* Navigation Buttons */}
       <View style={styles.navigationButtons}>
         <TouchableOpacity
           style={[styles.navButton, current === 0 && styles.disabledButton]}
@@ -141,10 +145,7 @@ export default function QuizScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[
-            styles.navButton,
-            !selected && styles.disabledButton,
-          ]}
+          style={[styles.navButton, !selected && styles.disabledButton]}
           onPress={handleNext}
           disabled={!selected}
         >
@@ -158,8 +159,20 @@ export default function QuizScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 20, paddingBottom: 40 },
-  progressText: {
+  container: { padding: 20 },
+  progressBarBg: {
+    height: 8,
+    backgroundColor: '#e2e8f0',
+    borderRadius: 4,
+    marginBottom: 20,
+    marginTop: 50,
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: '#fbbf24',
+    borderRadius: 4,
+  },
+  questionCount: {
     fontSize: 14,
     color: '#64748b',
     marginBottom: 10,
@@ -173,17 +186,18 @@ const styles = StyleSheet.create({
   optionButton: {
     borderWidth: 1,
     borderColor: '#d1d5db',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 10,
-  },
-  optionText: {
-    color: '#0f766e',
-    fontWeight: '500',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 12,
+    backgroundColor: '#ffffff',
   },
   selectedOption: {
     backgroundColor: '#ccfbf1',
     borderColor: '#0f766e',
+  },
+  optionText: {
+    color: '#0f766e',
+    fontWeight: '500',
   },
   selectedText: {
     color: '#0f766e',
@@ -204,7 +218,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#94a3b8',
   },
   navText: {
-    color: 'white',
+    color: '#fff',
     fontWeight: 'bold',
   },
   loadingContainer: {
@@ -212,7 +226,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 40,
-    minHeight: 300,
   },
   loadingText: {
     marginTop: 12,

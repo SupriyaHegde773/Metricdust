@@ -16,8 +16,8 @@ const awsConfig: any = {
             "openid",
             "aws.cognito.signin.user.admin",
           ],
-          redirectSignIn: "https://ashish.beta.metricrealties.com",
-          redirectSignOut: "https://ashish.beta.metricrealties.com",
+          redirectSignIn: 'https://ashish.beta.metricrealties.com,skillspark://',
+          redirectSignOut: 'https://ashish.beta.metricrealties.com,skillspark://',
           responseType: "token", // or 'code' for more secure flow
         },
         username: true,
@@ -25,6 +25,5 @@ const awsConfig: any = {
     },
   },
 };
- 
+
 export default awsConfig;
- 

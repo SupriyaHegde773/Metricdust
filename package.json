@@ -11,6 +11,7 @@
   "dependencies": {
     "@aws-amplify/auth": "^6.12.4",
     "@aws-amplify/react-native": "^1.1.10",
+    "@aws-amplify/ui-react-native": "^2.5.3",
     "@react-native-async-storage/async-storage": "^2.1.2",
     "@react-native-community/netinfo": "^11.4.1",
     "@react-navigation/native": "^7.1.6",
@@ -32,6 +33,7 @@
     "react-native-reanimated": "~3.17.4",
     "react-native-safe-area-context": "5.4.0",
     "react-native-screens": "~4.11.1",
+    "react-native-url-polyfill": "^2.0.0",
     "react-native-web": "^0.20.0",
     "router": "^2.2.0"
   },

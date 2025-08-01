@@ -26,6 +26,7 @@ export const AuthService = {
         authFlowType: "USER_PASSWORD_AUTH",
       },
     });
+    console.log("User signed in:", user);
     return user;
   },
 

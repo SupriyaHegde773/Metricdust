@@ -41,7 +41,7 @@ export default function Signup() {
   const handleGoogleSignup = () => {
     // Simulated success — replace with real OAuth later
     console.log('✅ Google signup simulated');
-    navigation.reset({ index: 0, routes: [{ name: 'InterestQuiz' }] });
+    navigation.reset({ index: 0, routes: [{ name: 'ProfileSetup' }] });
   };
 
   return (

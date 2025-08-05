@@ -8,16 +8,19 @@ import {
   ActivityIndicator,
   Image,
   TextInput,
+  Modal,
+  Pressable,
 } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useAuth } from "../context/AuthContext";
 import { StorageService } from "../../storageService";
 import { ProfileService } from "../../ProfileService";
+import { AuthService } from "../../AuthService";
 
 export default function Profile() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [aliasId, setAliasId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -27,6 +30,7 @@ export default function Profile() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState("");
+  const [menuVisible, setMenuVisible] = useState(false);
 
   const loadProfile = async () => {
     try {
@@ -47,6 +51,21 @@ export default function Profile() {
     loadProfile();
   }, []);
 
+  const handleLogout = async () => {
+    await AuthService.logout();
+    await StorageService.clearAll();
+    setUser(null);
+    router.replace("/welcome");
+  };
+
+  const handleSave = () => {
+    setProfile({ ...profile, name: editedName });
+    setIsEditing(false);
+    // Optional: call ProfileService.updateProfileDetails(email, aliasId, { name: editedName });
+  };
+
+  const displayName = profile?.name || "Emma Johnson";
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -54,14 +73,6 @@ export default function Profile() {
       </View>
     );
   }
-
-  const displayName = profile?.name || "Emma Johnson";
-
-  const handleSave = () => {
-    setProfile({ ...profile, name: editedName });
-    setIsEditing(false);
-    // Optional: call ProfileService.updateProfileDetails(email, aliasId, { name: editedName });
-  };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -89,13 +100,9 @@ export default function Profile() {
           )}
           <Text style={styles.subtext}>Student • Joined May 2024</Text>
         </View>
-        <TouchableOpacity
-          onPress={() => {
-            setEditedName(displayName);
-            setIsEditing(true);
-          }}
-        >
-          <Ionicons name="create-outline" size={20} color="#334155" />
+
+        <TouchableOpacity onPress={() => setMenuVisible(true)}>
+          <Ionicons name="ellipsis-vertical" size={20} color="#334155" />
         </TouchableOpacity>
       </View>
 
@@ -112,6 +119,36 @@ export default function Profile() {
           </TouchableOpacity>
         </View>
       )}
+
+      {/* Modal Menu */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={menuVisible}
+        onRequestClose={() => setMenuVisible(false)}
+      >
+        <Pressable style={styles.modalBackdrop} onPress={() => setMenuVisible(false)}>
+          <View style={styles.menuModal}>
+            <TouchableOpacity
+              onPress={() => {
+                setEditedName(displayName);
+                setIsEditing(true);
+                setMenuVisible(false);
+              }}
+            >
+              <Text style={styles.menuOption}>Edit Profile</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                setMenuVisible(false);
+                handleLogout();
+              }}
+            >
+              <Text style={[styles.menuOption, { color: "#dc2626" }]}>Logout</Text>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      </Modal>
 
       {/* Interest Areas */}
       <View style={styles.card}>
@@ -243,7 +280,7 @@ const styles = StyleSheet.create({
   container: {
     padding: 16,
     backgroundColor: "#f8fafc",
-    paddingTop: 40, // added extra top padding to lower entire content
+    paddingTop: 40,
   },
   loadingContainer: {
     flex: 1,
@@ -254,7 +291,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 20,
-    marginTop: 24, // added margin top to push header lower
+    marginTop: 24,
   },
   avatar: {
     width: 60,
@@ -436,4 +473,22 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
   },
   challengeButtonText: { color: "white", fontWeight: "bold" },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "#00000044",
+    justifyContent: "flex-end",
+  },
+  menuModal: {
+    backgroundColor: "#ffffff",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+  },
+  menuOption: {
+    fontSize: 16,
+    paddingVertical: 12,
+    color: "#0f172a",
+    fontWeight: "500",
+  },
 });

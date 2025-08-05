@@ -1,6 +1,5 @@
 import config from './config.json';
 import interceptor from './interceptor';
-import { AuthService } from './AuthService';
 import userJson from './user.json';
 
 export const ProfileService = {

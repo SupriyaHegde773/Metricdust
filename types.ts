@@ -2,7 +2,6 @@
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 export type RootStackParamList = {
-  Welcome: undefined;
   Login: undefined;
   Signup: undefined;
   Main: undefined;
@@ -17,7 +16,8 @@ export type RootStackParamList = {
   CourseDetail: { id: string };
   CourseList: { query: string };
   CourseSearch: { query: string };
-  InterestQuiz: undefined;
+  ProfileSetup: undefined;
+  Welcome: undefined;
 };
 
 export type LoginScreenNavigationProp = NativeStackNavigationProp<

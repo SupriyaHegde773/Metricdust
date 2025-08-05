@@ -18,59 +18,64 @@ const { height } = Dimensions.get('window');
 
 const steps = [
   {
-    section: 'Background & Experience',
-    title: 'What is your current educational background?',
-    key: 'educationLevel',
+    title: 'What is your name?',
+    key: 'name',
+    isTextInput: true,
+  },
+  {
+    title: 'What are you currently pursuing?',
+    key: 'currentPursuit',
     options: [
-      'High school',
-      'Undergraduate student',
-      'Graduate student',
+      'School (Grade 9–12)',
+      'Undergraduate degree',
+      'Postgraduate degree',
+      'Preparing for competitive exams',
       'Working professional',
-      'Research/PhD',
-      'Other',
+      'Taking a gap year',
+      'Still figuring it out',
     ],
   },
   {
-    title: 'What field are you from or interested in?',
-    key: 'fieldInterest',
+    title: 'What are your areas of interest?',
+    key: 'interests',
     options: [
-      'Computer Science / IT',
-      'Commerce / Business',
-      'Arts / Humanities',
-      'Science / Engineering',
-      'Law / Policy',
-      'Healthcare / Medicine',
-      'Undecided / General Learning',
-    ],
-  },
-  {
-    section: 'Interests',
-    title: 'Which topics are you most curious about?',
-    key: 'domains',
-    options: [
-      'Web / App Development',
-      'Finance / Accounting',
-      'Psychology / Sociology',
-      'Data Analytics / AI',
-      'Marketing / Sales',
-      'Cybersecurity / Networks',
+      'Technology & Coding',
+      'Business & Startups',
+      'Art & Design',
+      'Psychology & Human Behavior',
+      'Content Creation & Media',
+      'Environment & Social Impact',
+      'Sports & Fitness',
     ],
     multi: true,
   },
   {
-    title: 'How do you like to learn best?',
+    title: 'If your life had a title based on your current vibe, what would it be?',
+    key: 'lifeVibe',
+    options: [
+      'Going with the flow',
+      'Future CEO in making',
+      'Multi-tasking genius',
+      'Learning mode: ON',
+      "Don't know, but I'm curious!",
+    ],
+    multi: false,
+  },
+  {
+    title: 'Pick your go-to learning method:',
     key: 'learningStyle',
     options: [
-      'Watching videos',
-      'Hands-on projects',
-      'Reading articles/books',
-      'Solving quizzes / problems',
+      'Podcasts',
+      'YouTube videos',
+      'Deep reading',
+      'Hands-on practical experience',
+      'Group chats/discussions',
     ],
     multi: true,
   },
 ];
 
-export default function InterestQuiz() {
+export default function ProfileSetup() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<{ [key: string]: string[] }>({});
@@ -94,18 +99,19 @@ export default function InterestQuiz() {
   };
 
   const handleNext = () => {
-    const trimmed = customInput.trim();
-    const merged = trimmed ? [...selected, trimmed] : selected;
+    const inputTrimmed = customInput.trim();
+    const merged = inputTrimmed ? [...selected, inputTrimmed] : selected;
 
-    if (merged.length === 0) return;
+    if (step.isTextInput && inputTrimmed === '') return;
+    if (!step.isTextInput && merged.length === 0) return;
 
-    setAnswers({ ...answers, [step.key]: merged });
+    setAnswers({ ...answers, [step.key]: step.isTextInput ? [inputTrimmed] : merged });
     setCustomInput('');
 
     if (currentStep < totalSteps - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      handleComplete({ ...answers, [step.key]: merged });
+      handleComplete({ ...answers, [step.key]: step.isTextInput ? [inputTrimmed] : merged });
     }
   };
 
@@ -113,7 +119,7 @@ export default function InterestQuiz() {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     } else {
-      navigation.goBack(); // ✅ now works on first step
+      navigation.goBack();
     }
   };
 
@@ -130,7 +136,6 @@ export default function InterestQuiz() {
         });
       }
 
-      // ✅ Route to Main (ensure 'Main' exists in your stack)
       navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
     } catch (error) {
       console.error('Error completing profile setup:', error);
@@ -164,7 +169,7 @@ export default function InterestQuiz() {
   );
 
   const renderOptions = () =>
-    step.options.map((option) => {
+    step.options?.map((option) => {
       const isSelected = selected.includes(option);
       return (
         <TouchableOpacity
@@ -200,27 +205,33 @@ export default function InterestQuiz() {
 
         {renderStepper()}
 
-        {step.section && <Text style={styles.sectionText}>{step.section}</Text>}
         <Text style={styles.question}>{step.title}</Text>
 
-        <View>{renderOptions()}</View>
-
-        <Text style={styles.inputLabel}>Add custom option:</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Type here..."
-          value={customInput}
-          onChangeText={setCustomInput}
-        />
+        {step.isTextInput ? (
+          <TextInput
+            style={styles.input}
+            placeholder="Type here..."
+            value={customInput}
+            onChangeText={setCustomInput}
+          />
+        ) : (
+          <>
+            <View>{renderOptions()}</View>
+            <Text style={styles.inputLabel}>Add custom option:</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Type here..."
+              value={customInput}
+              onChangeText={setCustomInput}
+            />
+          </>
+        )}
 
         <View style={styles.actions}>
-          <TouchableOpacity
-            onPress={handleBack}
-            style={[styles.backBtn, currentStep === 0 && styles.backBtn]}
-          >
+          <TouchableOpacity onPress={handleBack} style={styles.backBtn}>
             <Text style={styles.backText}>Back</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
+          <TouchableOpacity onPress={handleNext} style={styles.nextBtn}>
             <Text style={styles.nextText}>
               {currentStep === totalSteps - 1 ? 'Complete' : 'Next'}
             </Text>
@@ -231,7 +242,6 @@ export default function InterestQuiz() {
   );
 }
 
-// ✅ styles unchanged from previous code
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
@@ -286,12 +296,6 @@ const styles = StyleSheet.create({
   },
   stepNumberInactive: {
     color: '#64748b',
-  },
-  sectionText: {
-    color: '#475569',
-    fontSize: 12,
-    marginBottom: 4,
-    fontWeight: '500',
   },
   question: {
     fontSize: 13,

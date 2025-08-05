@@ -2,13 +2,11 @@
 import axios from 'axios';
 import { fetchAuthSession } from 'aws-amplify/auth';
 
-// Create an Axios instance
 const api = axios.create({
   baseURL: 'https://your-api-url.com', // ⛳ Replace with your actual backend API URL
   timeout: 10000,
 });
 
-// Add an interceptor to attach token to every request
 api.interceptors.request.use(
   async (config) => {
     try {
